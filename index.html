@@ -33,7 +33,7 @@
     <main role="main" class="container">
         <div id="app" class="starter-template">
             <h1>Address Validation</h1>
-            <p class="lead">Enter an address, get it validated, and have it corrected.</p>
+            <p class="lead">Enter an address, get it valid for USPS, and have it corrected if it's not!</p>
 
 
             <div v-if="errors.length" class="alert alert-danger" role="alert">
@@ -44,7 +44,7 @@
             </div>
 
             <div v-if="corrected" class="alert alert-warning" role="alert">
-                <strong>Done!</strong> We could look the address up but we made a few corrections for you! Here's what was changed:
+                <strong>Done!</strong> We found the address but we made a few corrections for you! Here's what was changed:
                 <ul>
                     <li v-for="change in corrections">{{change}}</li>
                 </ul>
@@ -62,7 +62,7 @@
                 <strong>Error!</strong> Unable to connect to validation service.
             </div>
 
-            <form @submit="formvalidate" v-on:submit.prevent="onSubmit">
+            <form @submit="formvalidate" v-on:submit.prevent>
                 <div class="form-group">
                     <label for="inputAddress">Address</label>
                     <input type="text" class="form-control" id="inputAddress" v-model="address1" placeholder="1234 Main St">

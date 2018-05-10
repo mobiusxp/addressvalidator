@@ -1,9 +1,3 @@
-/*
-var test = axios.get("https://us-street.api.smartystreets.com/street-address?street=123+main+Schenectady+NY&auth-id=22757391512408491").then(function(response){
-	console.log(response);
-});
-*/
-
 var app = new Vue({
 	el: '#app',
 	data() {
@@ -90,6 +84,7 @@ var app = new Vue({
 			this.success = false;
 			this.corrected = false;
 			this.notfound = false;
+			this.corrections = [];
 
 			if(!this.address1){
 				this.errors.push("Address cannot be blank");
@@ -122,33 +117,42 @@ var app = new Vue({
 					this.notfound = true;
 				}
 				else{				
-					console.log(response);
+					// console.log(response);
 					if(response.data[0].analysis.footnotes){
 						var notes = response.data[0].analysis.footnotes.split("#");
-					}
-					if(notes.includes("A")){
-						this.zip = response.data[0].components.zipcode + "-" + response.data[0].components.plus4_code;
-						this.corrections.push("ZIP Code")
-						this.corrected = true;
-					}
-					if(notes.includes("M")){
-						this.address1 = response.data[0].components.primary_number + " " + response.data[0].components.street_name + " " + response.data[0].components.street_suffix;
-						this.corrections.push("Address 1")
-						this.corrected = true;
-					}
-					if(notes.includes("B")){
-						this.city = response.data[0].components.city_name;
-						this.state = response.data[0].components.state_abbreviation;
-						this.corrections.push("City")
-						this.corrected = true;
+						if(notes.includes("A")){
+							this.zip = response.data[0].components.zipcode + "-" + response.data[0].components.plus4_code;
+							this.corrections.push("ZIP Code")
+							this.corrected = true;
+						}
+						if(notes.includes("M") || notes.includes("L")){
+							this.address1 = response.data[0].components.primary_number + " " + response.data[0].components.street_name + " " + response.data[0].components.street_suffix;
+							this.corrections.push("Address 1")
+							this.corrected = true;
+						}
+						if(notes.includes("B")){
+							this.city = response.data[0].components.city_name;
+							this.state = response.data[0].components.state_abbreviation;
+							this.corrections.push("City Spelling")
+							this.corrected = true;
+						}
+						if(notes.includes("V")){
+							this.city = response.data[0].components.city_name;
+							this.state = response.data[0].components.state_abbreviation;
+							this.corrections.push("Corrected City / State")
+							this.corrected = true;
+						}
 					}
 					if(!this.corrected){
+						if(!this.zip){
+							this.zip = response.data[0].components.zipcode + "-" + response.data[0].components.plus4_code;
+						}
 						this.success = true;
 					}				
 				}
 			}).catch((error) => {
 				this.fatalerror = true;
-				console.log(error);
+				// console.log(error);
 			})
 		}
 	}
