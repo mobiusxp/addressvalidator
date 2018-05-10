@@ -37,13 +37,32 @@
 
 
             <div v-if="errors.length" class="alert alert-danger" role="alert">
-                <strong>Error!</strong> Change a few things up and try submitting again.
+                <strong>Error!</strong> Please correct the following errors and try again:
                 <ul>
                     <li v-for="error in errors">{{error}}</li>
                 </ul>
             </div>
 
-            <form @submit="validate" v-on:submit.prevent="onSubmit">
+            <div v-if="corrected" class="alert alert-warning" role="alert">
+                <strong>Done!</strong> We could look the address up but we made a few corrections for you! Here's what was changed:
+                <ul>
+                    <li v-for="change in corrections">{{change}}</li>
+                </ul>
+            </div>
+
+            <div v-if="success" class="alert alert-success" role="alert">
+                <strong>Done!</strong> Your address is valid!
+            </div>
+
+            <div v-if="notfound" class="alert alert-warning" role="alert">
+                <strong>Not Found!</strong> This address could not be found.
+            </div>
+
+            <div v-if="fatalerror" class="alert alert-danger" role="alert">
+                <strong>Error!</strong> Unable to connect to validation service.
+            </div>
+
+            <form @submit="formvalidate" v-on:submit.prevent="onSubmit">
                 <div class="form-group">
                     <label for="inputAddress">Address</label>
                     <input type="text" class="form-control" id="inputAddress" v-model="address1" placeholder="1234 Main St">
@@ -69,7 +88,7 @@
                         <input type="text" class="form-control" id="inputZip" v-model="zip">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary" v-on:click="say('hi')">Check my Address Please!</button>
+                <button type="submit" class="btn btn-primary" v-on:click="addressvalidate">Check my Address Please!</button>
             </form>
         </div>
 

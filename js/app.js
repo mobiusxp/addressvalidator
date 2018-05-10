@@ -6,8 +6,9 @@ var test = axios.get("https://us-street.api.smartystreets.com/street-address?str
 
 var app = new Vue({
 	el: '#app',
-	data: {
-		states: 
+	data() {
+		return { 
+			states: 
 			{
 				"AL": "Alabama",
 				"AK": "Alaska",
@@ -69,21 +70,29 @@ var app = new Vue({
 				"WI": "Wisconsin",
 				"WY": "Wyoming"
 			},
-		address1: null,
-		address2: null,
-		city: null,
-		state: null,
-		zip: null,
-		errors: []
+			address1: null,
+			address2: null,
+			city: null,
+			state: null,
+			zip: null,
+			errors: [],
+			fatalerror: false,
+			success: false,
+			corrected: false,
+			notfound: false,
+			corrections: []
+		}
 	},
 	methods: {
-		validate: function(){
+		formvalidate: function(){
 			this.errors = [];
+			this.fatalerror = false;
+			this.success = false;
+			this.corrected = false;
+			this.notfound = false;
+
 			if(!this.address1){
-				this.errors.push("Address1 cannot be blank");
-			}
-			if(!this.address2){
-				this.errors.push("Address2 cannot be blank");
+				this.errors.push("Address cannot be blank");
 			}
 			if(!this.city){
 				this.errors.push("City cannot be blank");
@@ -91,14 +100,56 @@ var app = new Vue({
 			if(this.state == "Choose..." || !this.state){
 				this.errors.push("State cannot be blank");
 			}
-			if(!this.zip){
-				this.errors.push("ZIP cannot be blank");
-			}else if(!this.zip.match(/^\d{5}(?:[-\s]\d{4})?$/)){
+			if(this.zip && !this.zip.match(/^\d{5}(?:[-\s]\d{4})?$/)){
 				this.errors.push("ZIP must be 5 digits or 5+4 digits (ex. 12345-1234)");
 			}
 		},
-		say: function(text){
-			alert(this.address1);
+		addressvalidate: function(){
+			axios.get('https://us-street.api.smartystreets.com/street-address', {
+				params: {
+					'auth-id': 'AUTH-ID',
+					'auth-token': 'AUTH-TOKEN', 
+					street: this.address1,
+					secondary: this.address2,
+					city: this.city,
+					state: this.state,
+					zipcode: this.zip,
+					match: "strict"
+				}
+			})
+			.then((response) => {
+				if(response.data.length == 0){
+					this.notfound = true;
+				}
+				else{				
+					console.log(response);
+					if(response.data[0].analysis.footnotes){
+						var notes = response.data[0].analysis.footnotes.split("#");
+					}
+					if(notes.includes("A")){
+						this.zip = response.data[0].components.zipcode + "-" + response.data[0].components.plus4_code;
+						this.corrections.push("ZIP Code")
+						this.corrected = true;
+					}
+					if(notes.includes("M")){
+						this.address1 = response.data[0].components.primary_number + " " + response.data[0].components.street_name + " " + response.data[0].components.street_suffix;
+						this.corrections.push("Address 1")
+						this.corrected = true;
+					}
+					if(notes.includes("B")){
+						this.city = response.data[0].components.city_name;
+						this.state = response.data[0].components.state_abbreviation;
+						this.corrections.push("City")
+						this.corrected = true;
+					}
+					if(!this.corrected){
+						this.success = true;
+					}				
+				}
+			}).catch((error) => {
+				this.fatalerror = true;
+				console.log(error);
+			})
 		}
 	}
 })
